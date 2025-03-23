@@ -1,4 +1,3 @@
 # testing-project
 
-one
-two
+1, 2, 3
