@@ -26,29 +26,69 @@ jobs:
       - name: Update Changelog
         run: |
           #!/bin/bash
-          
+
           FILE="changelog.md"
-          
-          # Function to check and create the changelog file if it doesn't exist
-          function checkOrCreateChangeLog() {
-              if [ ! -f "$FILE" ]; then
-                  echo "$FILE does not exist. Creating it now..."
-                  echo "# Changelog" > "$FILE"
-                  echo "" >> "$FILE"
-                  echo "Initialized $FILE with a heading."
-              fi
-          }
-          
-          # Function to update the changelog with a new entry
+
           function updateChangeLog() {
-              checkOrCreateChangeLog  # Ensure the file exists
-              TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-              echo "- $TIMESTAMP: $1" >> "$FILE"
-              echo "Changelog updated with: $1"
+              # Fetch PRs and parse JSON
+              prs=$(gh pr list --state merged --json title,labels,url --limit 100)
+
+              # Arrays to store PRs
+              bugs=()
+              features=()
+              enhancements=()
+
+              # Process PRs
+              while IFS= read -r pr; do
+                  title=$(echo "$pr" | jq -r '.title')
+                  url=$(echo "$pr" | jq -r '.url')
+                  label=$(echo "$pr" | jq -r '.labels[0].name')
+
+                  case "$label" in
+                      "bug")
+                          bugs+=("- $title. ([${url##*/}]($url))")
+                          ;;
+                      "feature")
+                          features+=("- $title. ([${url##*/}]($url))")
+                          ;;
+                      "improvement")
+                          enhancements+=("- $title. ([${url##*/}]($url))")
+                          ;;
+                  esac
+              done < <(echo "$prs" | jq -c '.[]')
+
+              # Overwrite changelog.md
+              {
+                  echo -e "# Changelog\n"
+                  echo "All notable changes to this project will be documented in this file."
+                  echo "The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),"
+                  echo "and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)."
+                  echo -e "\n## [Unreleased]\n"
+
+                  if [[ ${#features[@]} -gt 0 ]]; then
+                      echo "### Features"
+                      for feature in "${features[@]}"; do echo "$feature"; done
+                      echo ""
+                  fi
+
+                  if [[ ${#bugs[@]} -gt 0 ]]; then
+                      echo "### Bug Fixes"
+                      for bug in "${bugs[@]}"; do echo "$bug"; done
+                      echo ""
+                  fi
+
+                  if [[ ${#enhancements[@]} -gt 0 ]]; then
+                      echo "### Improvements"
+                      for enhancement in "${enhancements[@]}"; do echo "$enhancement"; done
+                      echo ""
+                  fi
+              } > "$FILE"  # **OVERWRITE the file instead of appending**
+
+              echo "Changelog updated successfully."
           }
-          
-          # Update changelog with PR title
-          updateChangeLog "${{ github.event.pull_request.title }}"
+
+          # Run the function
+          updateChangeLog
 
       - name: Commit
         run: |
