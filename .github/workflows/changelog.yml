@@ -31,62 +31,67 @@ jobs:
 
           FILE="changelog.md"
 
+          function createChangeLogIfNotExists() {
+            if [ ! -f "$FILE" ]; then
+              cat <<EOL > "$FILE"
+          # Changelog
+
+          All notable changes to this project will be documented in this file.
+          The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+          and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+          ## [Unreleased]
+
+          ### Features
+
+          ### Bug Fixes
+
+          ### Improvements
+
+          ---
+          EOL
+              echo "Created $FILE with default content."
+            fi
+          }
+
           function updateChangeLog() {
-              # Fetch PRs and parse JSON
-              prs=$(gh pr list --state merged --json title,labels,url --limit 100)
 
-              # Arrays to store PRs
-              bugs=()
-              features=()
-              enhancements=()
+            createChangeLogIfNotExists
+            mergedPr=$(gh pr list --state merged --json title,labels,url --limit 1 | jq -r '.[0]')
 
-              # Process PRs
-              while IFS= read -r pr; do
-                  title=$(echo "$pr" | jq -r '.title')
-                  url=$(echo "$pr" | jq -r '.url')
-                  label=$(echo "$pr" | jq -r '.labels[0].name')
+            title=$(echo "$mergedPr" | jq -r '.title')
+            url=$(echo "$mergedPr" | jq -r '.url')
+            label=$(echo "$mergedPr" | jq -r '.labels[0].name')
 
-                  case "$label" in
-                      "bug")
-                          bugs+=("- $title. ([${url##*/}]($url))")
-                          ;;
-                      "feature")
-                          features+=("- $title. ([${url##*/}]($url))")
-                          ;;
-                      "improvement")
-                          enhancements+=("- $title. ([${url##*/}]($url))")
-                          ;;
-                  esac
-              done < <(echo "$prs" | jq -c '.[]')
+            # Determine the heading based on the label
+            case $label in
+              "bug")
+                heading="### Bug Fixes"
+                ;;
+              "feature")
+                heading="### Features"
+                ;;
+              "improvement")
+                heading="### Improvements"
+                ;;
+              *)
+                echo "Invalid label: $label"
+                exit 1
+                ;;
+            esac
 
-              # Overwrite changelog.md
-              {
-                  echo -e "# Changelog\n"
-                  echo "All notable changes to this project will be documented in this file."
-                  echo "The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),"
-                  echo "and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)."
-                  echo -e "\n## [Unreleased]\n"
+            # Construct the new line
+            replacement="$heading\n- $title. ([#${url##*/}]($url))"
 
-                  if [[ ${#features[@]} -gt 0 ]]; then
-                      echo "### Features"
-                      for feature in "${features[@]}"; do echo "$feature"; done
-                      echo ""
-                  fi
 
-                  if [[ ${#bugs[@]} -gt 0 ]]; then
-                      echo "### Bug Fixes"
-                      for bug in "${bugs[@]}"; do echo "$bug"; done
-                      echo ""
-                  fi
+            # Use awk to replace the first occurrence of the respective section
+            awk -v heading="$heading" -v replacement="$replacement" '
+                $0 == heading && !found {print replacement; found=1; next}
+                {print}
+            ' changelog.md > changelog.tmp && mv changelog.tmp changelog.md
 
-                  if [[ ${#enhancements[@]} -gt 0 ]]; then
-                      echo "### Improvements"
-                      for enhancement in "${enhancements[@]}"; do echo "$enhancement"; done
-                      echo ""
-                  fi
-              } > "$FILE"  # **OVERWRITE the file instead of appending**
+            echo "Updated '$heading' section with: $title"
 
-              echo "Changelog updated successfully."
           }
 
           # Run the function
