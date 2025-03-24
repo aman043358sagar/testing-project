@@ -5,3 +5,5 @@
 ## feature
 
 ## added gihub changelog
+
+## fixed changelog
