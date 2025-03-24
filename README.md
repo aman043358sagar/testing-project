@@ -7,3 +7,5 @@
 ## added gihub changelog
 
 ## fixed changelog
+
+## fixed text size
