@@ -1,12 +1,20 @@
 # Changelog
 
-- 2025-03-23 07:18:43: Update README.md
-- 2025-03-23 07:54:17: Update README.md
-- 2025-03-23 08:54:27: Update README.md
-- 2025-03-23 09:16:18: Update README.md
-- 2025-03-23 09:35:04: Update README.md
-- 2025-03-23 09:46:14: Update README.md
-- 2025-03-23 09:52:46: add 14 to readme
-- 2025-03-23 10:05:17: add 15 to readme
-- 2025-03-23 23:01:23: Update README.md
-- 2025-03-23 23:12:08: Update README.md
+All notable changes to this project will be documented in this file.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Features
+- Update README.md. ([25](https://github.com/aman043358sagar/testing-project/pull/25))
+- Update README.md. ([24](https://github.com/aman043358sagar/testing-project/pull/24))
+
+### Bug Fixes
+- Update README.md. ([26](https://github.com/aman043358sagar/testing-project/pull/26))
+- Update README.md. ([23](https://github.com/aman043358sagar/testing-project/pull/23))
+- add 14 to readme. ([19](https://github.com/aman043358sagar/testing-project/pull/19))
+
+### Improvements
+- add 15 to readme. ([22](https://github.com/aman043358sagar/testing-project/pull/22))
+
