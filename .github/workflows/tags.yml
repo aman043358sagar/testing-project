@@ -1,0 +1,16 @@
+name: Tag Logger
+
+on:
+  push:
+    tags:
+      - '*'  # Runs on any tag push
+
+jobs:
+  log-tag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Log Tag and Date
+        run: |
+          echo "Tag: ${{ github.ref_name }}"
+          echo "Date: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
