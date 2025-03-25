@@ -1,4 +1,4 @@
-name: Tag Logger
+name: Tag
 
 on:
   push:
@@ -6,11 +6,35 @@ on:
       - '*'  # Runs on any tag push
 
 jobs:
-  log-tag:
+  update-tag:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Log Tag and Date
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Git
         run: |
-          echo "Tag: ${{ github.ref_name }}"
-          echo "Date: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Update Tag in changelog
+        run: |
+          FILE="changelog.md"
+
+          TAG_NAME="${{ github.ref_name }}"
+          CURRENT_DATE="$(date -u +"%Y-%m-%d")"
+
+          sed -i "s|## \[Unreleased\]|## \[Unreleased\]\n\n### Features\n\n### Bug Fixes\n\n### Improvements\n\n---\n\n## [$TAG_NAME] $CURRENT_DATE|" "$FILE"
+          
+      - name: Commit
+        run: |
+          git checkout ${{ github.event.pull_request.base.ref }}  # Ensure you're on the correct branch
+          git add changelog.md
+          git commit -m "Update changelog: ${{ github.event.pull_request.title }}"
+
+      - name: Push changes
+        run: |
+          git push origin ${{ github.event.pull_request.base.ref }}
