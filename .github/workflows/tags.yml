@@ -31,12 +31,12 @@ jobs:
           
       - name: Commit
         run: |
-          BRANCH_NAME=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+          BRANCH_NAME="master"
           git checkout -B "$BRANCH_NAME"
           git add changelog.md
           git commit -m "Update changelog: ${{ github.event.pull_request.title }}"
 
       - name: Push changes
         run: |
-          BRANCH_NAME=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+          BRANCH_NAME="master"
           git push origin "$BRANCH_NAME"
