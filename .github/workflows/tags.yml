@@ -31,10 +31,9 @@ jobs:
           
       - name: Commit
         run: |
-          git checkout ${{ github.event.pull_request.base.ref }}  # Ensure you're on the correct branch
           git add changelog.md
           git commit -m "Update changelog: ${{ github.event.pull_request.title }}"
 
       - name: Push changes
         run: |
-          git push origin ${{ github.event.pull_request.base.ref }}
+          git push
